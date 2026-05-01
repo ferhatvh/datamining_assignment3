@@ -35,7 +35,6 @@ def cluster_and_score(encoder, method='kmeans', n_init=20, **kwargs):
             raise ValueError(f"Unknown method: {method}")
 
         labels = clusterer.fit_predict(matrix)
-        # Use cosine for sparse, euclidean for dense
         metric = 'cosine' if sp.issparse(encoder.norm_matrix) else 'euclidean'
         score = silhouette_score(encoder.norm_matrix, labels, metric=metric)
         scores.append(score)
@@ -58,40 +57,22 @@ def cluster_and_score(encoder, method='kmeans', n_init=20, **kwargs):
 
 
 def get_top_terms_per_cluster(result, n_terms=10):
-    """
-    Extract top terms for each cluster.
-    
-    Parameters:
-    -----------
-    result : dict, output from cluster_and_score()
-    n_terms : int, number of top terms to extract per cluster
-    
-    Returns:
-    --------
-    dict mapping cluster_id -> list of (term, weight) tuples
-    """
     encoder = result["encoder"]
     labels = result["best_labels"]
     k = result["best_k"]
     
     if encoder.terms is None:
-        return None  # BERT doesn't have terms
+        return None
     
     cluster_terms = {}
     
-    # Get the document-term matrix
     matrix = encoder.dens_matrix
     if sp.issparse(matrix):
         matrix = matrix.toarray()
     
     for cluster_id in range(k):
-        # Get all documents in this cluster
         cluster_docs = matrix[labels == cluster_id]
-        
-        # Calculate mean weight for each term in this cluster
         mean_weights = cluster_docs.mean(axis=0)
-        
-        # Get top n terms
         top_indices = mean_weights.argsort()[-n_terms:][::-1]
         top_terms = [(encoder.terms[i], mean_weights[i]) for i in top_indices]
         
@@ -114,7 +95,6 @@ def print_cluster_summary(result, n_terms=10):
     for cluster_id, count in zip(unique, counts):
         print(f"  Cluster {cluster_id}: {count} documents")
     
-    # Get and print top terms
     cluster_terms = get_top_terms_per_cluster(result, n_terms)
     
     if cluster_terms:

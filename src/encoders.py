@@ -18,7 +18,7 @@ class BoWEncoder:
         self.terms = None
         self.norm_matrix = None
 
-    def fit(self, n_components=150, max_df=0.3):
+    def fit(self, n_components=200, max_df=0.3):
         vectorizer = CountVectorizer(max_df=max_df, min_df=3)
 
         sparse_matrix = vectorizer.fit_transform(self.articles_df)
@@ -36,7 +36,7 @@ class TFEncoder:
         self.terms = None
         self.norm_matrix = None
 
-    def fit(self, n_components=150, max_df=0.3):
+    def fit(self, n_components=200, max_df=0.3):
         vectorizer = TfidfVectorizer(max_df=max_df, min_df=3)
         tfidf_sparse = vectorizer.fit_transform(self.articles_df)
         self.terms = vectorizer.get_feature_names_out()
